@@ -1,0 +1,95 @@
+---
+- name: Setup OS environment
+  hosts: all
+  become: true
+  gather_facts: true
+  tasks:
+    # - name: Set hostname
+    #   # shell: 
+    #   #   cmd: "hostnamectl set-hostname {{ hostname }}"
+      # hostname:
+      #   name: "{{ hostname }}"
+
+    - name: Create vt_app group
+      group:
+        name: vt_app
+
+    #   shell:
+    #     # cmd: groupadd vt_app
+    #     cmd: groupadd -f vt_app
+
+    - name: Create vt_app user
+      user:
+        name: vt_app
+        group: vt_app
+
+    #   shell:
+    #     # cmd: useradd vt_app -g vt_app
+    #     cmd: "(groups vt_app | awk -F ' : ' '{print $2}' | grep vt_app) || useradd vt_app -g vt_app" 
+
+    - name: Setup DNS server
+      lineinfile:
+        path: /etc/resolv.conf
+        line: nameserver 8.8.8.8
+  
+    #   shell: 
+    #     cmd: echo nameserver 8.8.8.8 >> /etc/resolv.conf
+
+    - name: Install utility tools
+      package:
+        name: "{{ item }}"
+        state: present
+        update_cache: "{{ update_cache }}"
+      loop:
+          - curl
+          - wget
+          - htop
+  
+    # - name: Install utility tools
+    #   apt:
+    #     name: "{{ item }}"
+    #     state: present
+    #     update_cache: "{{ update_cache }}"
+    #   loop:
+    #       - curl
+    #       - wget
+    #       - htop
+    #   when: ansible_facts["distribution"] == "Ubuntu"
+    
+    # - name: Install utility tools
+    #   yum:
+    #     name: "{{ item }}"
+    #     state: present
+    #     update_cache: "{{ update_cache }}"
+    #   loop:
+    #       - curl
+    #       - wget
+    #       - htop
+    #   when: ansible_facts["distribution"] == "CentOS"  
+    # - name: Update system packages
+    #   shell:
+    #     cmd: apt update
+
+    # - name: Install utility tools
+    #   shell:
+    #     cmd: apt install -y curl wget htop
+
+    - name: SSH hardening
+      copy:
+        src: ../templates/ssh_hardening.conf
+        dest: /etc/ssh/sshd_config.d/ssh_hardening.conf
+      notify: "Restart SSH"
+
+    # - name: Disable SSH root login
+    #   shell:
+    #     cmd: sed -i 's/^PermitRootLogin.*$/PermitRootLogin no/g' /etc/ssh/sshd_config
+
+  handlers:
+    - name: Restart SSH
+      service:
+        name: sshd
+        state: restarted
+  
+    # - name: Restart SSH
+    #   shell:
+    #     cmd: systemctl restart sshd.service
