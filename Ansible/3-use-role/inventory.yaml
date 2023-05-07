@@ -3,8 +3,7 @@ all:
   hosts:
     localhost:
       ansible_connection: local
-      ansible_python_interpreter: /home/bdac/VDT-2023/Ansible/venv/bin/python
+      ansible_python_interpreter: /user/bin/python3
       ansible_become_user: root
-      ansible_become_password: 1508
+      ansible_become_password: YOUR_PASSWORD_HERE
       hostname: vtn-01
-
